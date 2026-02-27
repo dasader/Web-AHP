@@ -25,6 +25,17 @@ export default defineConfig({
       "/api": {
         target: proxyApiTarget,
         changeOrigin: true,
+        // 백엔드가 307 redirect로 http://backend:8000/... 를 돌려줄 때
+        // 브라우저가 Docker 내부 URL을 직접 요청하는 것을 막기 위해
+        // Location 헤더에서 타깃 호스트를 제거해 상대경로로 변환
+        configure: (proxy) => {
+          proxy.on("proxyRes", (proxyRes) => {
+            const location = proxyRes.headers["location"];
+            if (typeof location === "string" && location.startsWith(proxyApiTarget)) {
+              proxyRes.headers["location"] = location.slice(proxyApiTarget.length);
+            }
+          });
+        },
       },
     },
   },
