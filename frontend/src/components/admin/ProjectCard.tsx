@@ -8,6 +8,7 @@ import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
 import { toJpeg, toPng } from "html-to-image";
+import * as XLSX from "xlsx";
 import {
   Bar,
   BarChart,
@@ -160,6 +161,7 @@ interface ProjectCardProps {
   onDelete: () => void;
   results?: {
     alternative_weights: { node_id: string; name?: string; weight: number }[];
+    node_consistency?: Record<string, { ci: number; cr: number }>;
     missing_nodes: string[];
   };
   hierarchy?: HierarchyTreeNode | null;
@@ -398,6 +400,90 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
     }
   };
 
+  const handleDownloadExcel = () => {
+    if (!results) return;
+
+    const wb = XLSX.utils.book_new();
+
+    // Sheet 1: 기본정보
+    const infoRows: (string | number)[][] = [
+      ["항목", "값"],
+      ["프로젝트명", project.name],
+      ["설명", project.description || ""],
+      ["상태", project.status === "active" ? "활성" : "보관됨"],
+      ["총 참여자 수", project.participant_count],
+      ["응답 완료 수", project.responded_count ?? "-"],
+      ["누락 노드 수", results.missing_nodes.length],
+      ["누락 노드", results.missing_nodes.join(", ") || "없음"],
+      ["내보내기 일시", new Date().toLocaleString("ko-KR")],
+    ];
+    const ws1 = XLSX.utils.aoa_to_sheet(infoRows);
+    ws1["!cols"] = [{ wch: 18 }, { wch: 32 }];
+    XLSX.utils.book_append_sheet(wb, ws1, "기본정보");
+
+    // Sheet 2: 가중치결과
+    let weightRows: (string | number)[][];
+    if (sortedDepthGroups.length > 0) {
+      weightRows = [["계층", "항목명", "가중치", "비율(%)"]];
+      sortedDepthGroups.forEach((group) => {
+        group.nodes.forEach((node) => {
+          weightRows.push([
+            `${group.depth}계층`,
+            node.name,
+            Number(node.weight.toFixed(6)),
+            Number((node.weight * 100).toFixed(2)),
+          ]);
+        });
+      });
+    } else {
+      weightRows = [["항목명", "가중치", "비율(%)"]];
+      results.alternative_weights.forEach((item) => {
+        weightRows.push([
+          item.name || item.node_id,
+          Number(item.weight.toFixed(6)),
+          Number((item.weight * 100).toFixed(2)),
+        ]);
+      });
+    }
+    const ws2 = XLSX.utils.aoa_to_sheet(weightRows);
+    ws2["!cols"] = [{ wch: 10 }, { wch: 28 }, { wch: 12 }, { wch: 10 }];
+    XLSX.utils.book_append_sheet(wb, ws2, "가중치결과");
+
+    // Sheet 3: 일관성지수
+    const nodeConsistency = results.node_consistency;
+    if (nodeConsistency && Object.keys(nodeConsistency).length > 0) {
+      const nodeNameMap: Record<string, string> = {};
+      if (hierarchy) {
+        const traverse = (node: HierarchyTreeNode) => {
+          nodeNameMap[node.id] = node.name;
+          node.children?.forEach(traverse);
+        };
+        traverse(hierarchy);
+      }
+
+      const crThreshold = 0.1;
+      const consistencyRows: (string | number)[][] = [
+        ["노드명", "CI", "CR", `기준(${crThreshold})`, "허용여부"],
+      ];
+      Object.entries(nodeConsistency).forEach(([nodeId, { ci, cr }]) => {
+        consistencyRows.push([
+          nodeNameMap[nodeId] || nodeId,
+          Number(ci.toFixed(6)),
+          Number(cr.toFixed(6)),
+          crThreshold,
+          cr <= crThreshold ? "허용" : "초과",
+        ]);
+      });
+      const ws3 = XLSX.utils.aoa_to_sheet(consistencyRows);
+      ws3["!cols"] = [{ wch: 28 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 10 }];
+      XLSX.utils.book_append_sheet(wb, ws3, "일관성지수");
+    }
+
+    const today = new Date().toISOString().slice(0, 10);
+    const fileName = `${sanitizeFileNamePart(project.name)}_AHP결과_${today}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+  };
+
   const renderWeightRow = (node: FlattenedWeightNode) => {
     return (
       <Box key={node.id} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -523,6 +609,12 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 
       {results && (
         <Box sx={{ mt: 2, p: 1.5, bgcolor: "action.hover", borderRadius: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "flex-end", mb: 0.75 }}>
+            <Button variant="outline" size="sm" onClick={handleDownloadExcel}>
+              <FiDownload size={14} style={{ marginRight: 4 }} />
+              엑셀 다운로드
+            </Button>
+          </Box>
           <Tabs
             value={resultTab}
             onChange={handleResultTabChange}
