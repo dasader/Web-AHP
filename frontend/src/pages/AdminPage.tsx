@@ -651,6 +651,7 @@ const AdminPage = () => {
 
         {activeSection === "projects" && (
           <Card>
+            <h2 className="text-xl font-semibold mb-6">프로젝트 관리</h2>
             <div className="tab-list mb-6" role="tablist" aria-label="프로젝트 관리 탭">
               <button
                 type="button"
