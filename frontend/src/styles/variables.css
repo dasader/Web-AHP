@@ -136,7 +136,7 @@
   --font-display:  "DM Serif Display", "Noto Sans KR", Georgia, serif;
   --font-family:   "Noto Sans KR", "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
   --font-family-display: var(--font-display);
-  --font-family-mono: "DM Mono", "Consolas", "Monaco", monospace;
+  --font-family-mono: "DM Mono", "Consolas", "Monaco", "Noto Sans KR", monospace;
 
   /* ── Font Sizes ────────────────────────────────────────── */
   --font-size-xs:   0.75rem;

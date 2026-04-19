@@ -1,5 +1,4 @@
 import {
-  useEffect,
   useMemo,
   useState,
   useCallback,
@@ -166,7 +165,6 @@ const restoreSelectionsFromMatrix = (
   return selections;
 };
 
-/* ── CR Gauge ──────────────────────────────────────────────────── */
 const CRGauge = ({
   value,
   threshold,
@@ -186,21 +184,11 @@ const CRGauge = ({
   return (
     <div className="cr-gauge" style={{ width: size, height: size }}>
       <svg width={size} height={size}>
-        <circle
-          className="cr-gauge-track"
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          strokeWidth={5}
-        />
+        <circle className="cr-gauge-track" cx={size / 2} cy={size / 2} r={r} strokeWidth={5} />
         <circle
           className={`cr-gauge-fill ${isSuccess ? "is-success" : isError ? "is-error" : "is-neutral"}`}
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          strokeWidth={5}
-          strokeDasharray={circumference}
-          strokeDashoffset={dashOffset}
+          cx={size / 2} cy={size / 2} r={r} strokeWidth={5}
+          strokeDasharray={circumference} strokeDashoffset={dashOffset}
         />
       </svg>
       <div className="cr-gauge-center" style={{ color: isSuccess ? "var(--color-success)" : isError ? "var(--color-error)" : undefined }}>
@@ -220,7 +208,6 @@ const ParticipantPage = () => {
   const [pairwiseSelections, setPairwiseSelections] = useState<Record<string, PairwiseSelection>>({});
   const [submitResult, setSubmitResult] = useState<SubmitResponse | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [realtimeCR, setRealtimeCR] = useState<{ ci: number; cr: number } | null>(null);
   const [panelKey, setPanelKey] = useState(0);
 
   const selectedNode = useMemo(
@@ -245,13 +232,9 @@ const ParticipantPage = () => {
 
   const pairwisePairs = useMemo(() => buildPairwisePairs(childNodes), [childNodes]);
 
-  const selectionsKeys   = useMemo(() => Object.keys(pairwiseSelections).sort().join(","), [pairwiseSelections]);
-  const selectionsValues = useMemo(() => JSON.stringify(pairwiseSelections), [pairwiseSelections]);
-
   const matrixResult = useMemo(
     () => buildMatrixFromSelections(childNodes.length, pairwisePairs, pairwiseSelections, pairwiseEqualValue),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [childNodes.length, pairwisePairs, selectionsKeys, selectionsValues]
+    [childNodes.length, pairwisePairs, pairwiseSelections]
   );
 
   const selectedPairCount = Object.keys(pairwiseSelections).length;
@@ -267,8 +250,6 @@ const ParticipantPage = () => {
       return computeConsistencyRatio(matrixResult.matrix);
     return null;
   }, [isComplete, matrixResult.matrix]);
-
-  useEffect(() => { setRealtimeCR(realtimeCRCalc); }, [realtimeCRCalc]);
 
   const depthMap = useMemo(
     () => (tasks?.nodes ? buildDepthMap(tasks.nodes) : new Map<string, number>()),
@@ -366,7 +347,7 @@ const ParticipantPage = () => {
   };
 
   const crThresholdLabel = Number.isFinite(crThreshold) ? crThreshold.toFixed(2) : String(crThreshold);
-  const currentCrValue  = realtimeCR?.cr ?? submitResult?.consistency_ratio ?? selectedNode?.consistency_ratio ?? null;
+  const currentCrValue  = realtimeCRCalc?.cr ?? submitResult?.consistency_ratio ?? selectedNode?.consistency_ratio ?? null;
   const hasCurrentCr    = currentCrValue !== null;
   const isCurrentCrHigh = hasCurrentCr && currentCrValue > crThreshold;
   const currentCrLabel  = currentCrValue !== null ? currentCrValue.toFixed(4) : "-";
@@ -375,7 +356,6 @@ const ParticipantPage = () => {
     <Layout>
       <div className="space-y-5">
 
-        {/* Code entry card */}
         <Card>
           <div className="flex flex-col sm:flex-row gap-4">
             <Input
@@ -403,41 +383,34 @@ const ParticipantPage = () => {
         {tasks && (
           <div className="grid grid-cols-1" style={{ gap: "1.5rem" }}>
 
-            {/* Project info + node selector */}
             <Card>
               <div className="form-stack">
-                {/* Header row */}
                 <div className="flex items-center justify-between gap-3 flex-wrap">
-                  <h2
-                    style={{
-                      margin: 0,
-                      fontSize: "var(--font-size-lg)",
-                      fontWeight: 700,
-                      fontFamily: "var(--font-display)",
-                      color: "var(--color-text-primary)",
-                    }}
-                  >
+                  <h2 style={{
+                    margin: 0,
+                    fontSize: "var(--font-size-lg)",
+                    fontWeight: 700,
+                    fontFamily: "var(--font-display)",
+                    color: "var(--color-text-primary)",
+                  }}>
                     설문 정보
                   </h2>
                   {comparables.length > 0 && (
-                    <span
-                      style={{
-                        fontFamily: "var(--font-family-mono)",
-                        fontSize: "var(--font-size-xs)",
-                        fontWeight: 700,
-                        color: "var(--color-primary)",
-                        background: "var(--color-primary-pale)",
-                        border: "1px solid var(--color-primary)",
-                        borderRadius: "var(--radius-full)",
-                        padding: "0.2rem 0.65rem",
-                      }}
-                    >
+                    <span style={{
+                      fontFamily: "var(--font-family-mono)",
+                      fontSize: "var(--font-size-xs)",
+                      fontWeight: 700,
+                      color: "var(--color-primary)",
+                      background: "var(--color-primary-pale)",
+                      border: "1px solid var(--color-primary)",
+                      borderRadius: "var(--radius-full)",
+                      padding: "0.2rem 0.65rem",
+                    }}>
                       {completedCount} / {comparables.length}
                     </span>
                   )}
                 </div>
 
-                {/* Progress bar */}
                 {comparables.length > 0 && (
                   <div className="survey-progress">
                     <div className="survey-progress-header">
@@ -445,15 +418,11 @@ const ParticipantPage = () => {
                       <span className="survey-progress-count">{progressPct}%</span>
                     </div>
                     <div className="survey-progress-track">
-                      <div
-                        className="survey-progress-fill"
-                        style={{ width: `${progressPct}%` }}
-                      />
+                      <div className="survey-progress-fill" style={{ width: `${progressPct}%` }} />
                     </div>
                   </div>
                 )}
 
-                {/* Project summary */}
                 <div className="participant-project-summary">
                   <p className="participant-project-summary-line">
                     프로젝트&nbsp;: <span className="participant-project-summary-value">{tasks.project_name}</span>
@@ -463,13 +432,11 @@ const ParticipantPage = () => {
                   </p>
                 </div>
 
-                {/* Node selector */}
                 {comparables.length > 0 && (
                   <div className="space-y-2">
                     {comparables.map((node) => {
                       const depth = depthMap.get(node.id) ?? 0;
-                      const isHighCr =
-                        node.consistency_ratio != null && node.consistency_ratio > crThreshold;
+                      const isHighCr = node.consistency_ratio != null && node.consistency_ratio > crThreshold;
                       const isDone = node.consistency_ratio != null;
                       const isSelected = selectedNodeId === node.id;
 
@@ -487,38 +454,23 @@ const ParticipantPage = () => {
                           }}
                           style={{ marginLeft: depth > 0 ? depth * 1.2 + "rem" : 0 }}
                           className={`node-selector-item ${
-                            isSelected
-                              ? "is-selected"
-                              : isDone
-                              ? isHighCr
-                                ? "is-error"
-                                : "is-complete"
-                              : ""
+                            isSelected ? "is-selected" : isDone ? (isHighCr ? "is-error" : "is-complete") : ""
                           }`}
                         >
                           <div className="flex items-center gap-2 min-w-0">
-                            {/* Depth line indicator */}
                             {depth > 0 && (
-                              <FiChevronRight
-                                size={12}
-                                style={{ flexShrink: 0, opacity: 0.5 }}
-                              />
+                              <FiChevronRight size={12} style={{ flexShrink: 0, opacity: 0.5 }} />
                             )}
-                            <span
-                              style={{
-                                fontWeight: 600,
-                                fontSize: "var(--font-size-sm)",
-                                color: "var(--color-text-primary)",
-                              }}
-                            >
+                            <span style={{
+                              fontWeight: 600,
+                              fontSize: "var(--font-size-sm)",
+                              color: "var(--color-text-primary)",
+                            }}>
                               {node.name}
                             </span>
                             {isHighCr && (
                               <Badge variant="error">
-                                <FiAlertCircle
-                                  size={11}
-                                  style={{ marginRight: "0.2rem" }}
-                                />
+                                <FiAlertCircle size={11} style={{ marginRight: "0.2rem" }} />
                                 기준 초과
                               </Badge>
                             )}
@@ -526,12 +478,7 @@ const ParticipantPage = () => {
                           {isDone && (
                             <FiCheckCircle
                               size={18}
-                              style={{
-                                flexShrink: 0,
-                                color: isHighCr
-                                  ? "var(--color-error)"
-                                  : "var(--color-success)",
-                              }}
+                              style={{ flexShrink: 0, color: isHighCr ? "var(--color-error)" : "var(--color-success)" }}
                               aria-hidden
                             />
                           )}
@@ -543,69 +490,46 @@ const ParticipantPage = () => {
               </div>
             </Card>
 
-            {/* Survey panel — animates on node switch */}
             <Card>
               {selectedNode ? (
                 <div key={panelKey} className="survey-panel-enter form-stack">
-                  {/* Current node indicator */}
-                  <div
-                    style={{
-                      padding: "var(--spacing-3) var(--spacing-4)",
-                      background: "var(--color-primary-pale)",
-                      borderRadius: "var(--radius-lg)",
-                      borderLeft: "3px solid var(--color-primary)",
-                    }}
-                  >
-                    <p
-                      style={{
-                        margin: 0,
-                        fontSize: "var(--font-size-xs)",
-                        fontWeight: 600,
-                        letterSpacing: "0.1em",
-                        textTransform: "uppercase",
-                        color: "var(--color-primary)",
-                        opacity: 0.7,
-                        marginBottom: "0.2rem",
-                      }}
-                    >
-                      현재 비교 계층
+
+                  <div style={{ paddingBottom: "var(--spacing-3)", borderBottom: "1px solid var(--color-border-light)" }}>
+                    <p style={{
+                      margin: "0 0 0.3rem",
+                      fontSize: "var(--font-size-xs)",
+                      fontWeight: 600,
+                      color: "var(--color-text-muted)",
+                      fontFamily: "var(--font-family-mono)",
+                    }}>
+                      비교 계층
                     </p>
-                    <p
-                      style={{
-                        margin: 0,
-                        fontWeight: 700,
-                        fontFamily: "var(--font-display)",
-                        color: "var(--color-text-primary)",
-                        fontSize: "var(--font-size-lg)",
-                      }}
-                    >
+                    <p style={{
+                      margin: 0,
+                      fontWeight: 700,
+                      fontFamily: "var(--font-display)",
+                      color: "var(--color-text-primary)",
+                      fontSize: "var(--font-size-lg)",
+                    }}>
                       {selectedNode.name}
                     </p>
                   </div>
 
-                  {/* CR status */}
                   <div className="cr-status-card">
                     <div className="cr-status-left">
-                      <div
-                        style={{
-                          fontSize: "var(--font-size-xs)",
-                          fontWeight: 600,
-                          color: "var(--color-text-secondary)",
-                          marginBottom: "var(--spacing-1)",
-                        }}
-                      >
+                      <div style={{
+                        fontSize: "var(--font-size-xs)",
+                        fontWeight: 600,
+                        color: "var(--color-text-secondary)",
+                        marginBottom: "var(--spacing-1)",
+                      }}>
                         일관성 지수 (CR)
                       </div>
-                      <div
-                        className={`cr-status-value ${
-                          hasCurrentCr ? (isCurrentCrHigh ? "is-error" : "is-success") : ""
-                        }`}
-                      >
+                      <div className={`cr-status-value ${hasCurrentCr ? (isCurrentCrHigh ? "is-error" : "is-success") : ""}`}>
                         {currentCrLabel}
                       </div>
                       <div className="cr-status-label">기준값 ≤ {crThresholdLabel}</div>
                     </div>
-
                     <div style={{ display: "flex", alignItems: "center", gap: "var(--spacing-3)" }}>
                       <CRGauge value={currentCrValue} threshold={crThreshold} size={72} />
                       {hasCurrentCr && (
@@ -617,12 +541,14 @@ const ParticipantPage = () => {
                     </div>
                   </div>
 
-                  {/* Guide */}
-                  <div className="pairwise-guide-box">
-                    <p style={{ margin: 0, fontSize: "var(--font-size-sm)", color: "var(--color-text-secondary)" }}>
-                      왼쪽 항목이 더 중요하면 왼쪽 숫자를, 오른쪽 항목이 더 중요하면 오른쪽 숫자를 선택하세요.
-                    </p>
-                  </div>
+                  <p style={{
+                    margin: 0,
+                    fontSize: "var(--font-size-sm)",
+                    color: "var(--color-text-secondary)",
+                    fontStyle: "italic",
+                  }}>
+                    왼쪽 항목이 더 중요하면 왼쪽 숫자를, 오른쪽 항목이 더 중요하면 오른쪽 숫자를 선택하세요.
+                  </p>
 
                   {pairwisePairs.length === 0 ? (
                     <Alert variant="info">비교할 쌍이 없습니다.</Alert>
@@ -644,27 +570,20 @@ const ParticipantPage = () => {
                       <div className="pairwise-list">
                         {pairwisePairs.map((pair) => {
                           const selection = pairwiseSelections[pair.key];
-                          const isAlert =
-                            isComplete && isCurrentCrHigh && mostInconsistentPair?.key === pair.key;
+                          const isAlert = isComplete && isCurrentCrHigh && mostInconsistentPair?.key === pair.key;
                           return (
                             <div key={pair.key} className={`pairwise-comparison ${isAlert ? "is-alert" : ""}`}>
-                              <div
-                                className="pairwise-container"
-                              >
+                              <div className="pairwise-container">
                                 <span className="pairwise-name-left">{pair.left.name}</span>
                                 <div
                                   className="pairwise-scale"
-                                  style={
-                                    { ["--pairwise-column-count" as string]: String(pairwiseScaleColumnCount) } as CSSProperties
-                                  }
+                                  style={{ ["--pairwise-column-count" as string]: String(pairwiseScaleColumnCount) } as CSSProperties}
                                 >
                                   {pairwiseScaleDescending.map((value) => (
                                     <button
                                       key={`left-${pair.key}-${value}`}
                                       type="button"
-                                      className={`scale-button left ${
-                                        selection?.direction === "left" && selection.magnitude === value ? "active" : ""
-                                      }`}
+                                      className={`scale-button left ${selection?.direction === "left" && selection.magnitude === value ? "active" : ""}`}
                                       onClick={() => updateSelection(pair.key, "left", value)}
                                       title={`${pair.left.name}이 ${value}배 더 중요`}
                                     >
@@ -683,9 +602,7 @@ const ParticipantPage = () => {
                                     <button
                                       key={`right-${pair.key}-${value}`}
                                       type="button"
-                                      className={`scale-button right ${
-                                        selection?.direction === "right" && selection.magnitude === value ? "active" : ""
-                                      }`}
+                                      className={`scale-button right ${selection?.direction === "right" && selection.magnitude === value ? "active" : ""}`}
                                       onClick={() => updateSelection(pair.key, "right", value)}
                                       title={`${pair.right.name}이 ${value}배 더 중요`}
                                     >
@@ -717,31 +634,25 @@ const ParticipantPage = () => {
                       )}
 
                       {submitResult && (
-                        <div
-                          style={{
-                            border: "1px solid var(--color-border)",
-                            borderRadius: "var(--radius-lg)",
-                            background: "var(--color-bg-elevated)",
-                            padding: "var(--spacing-4)",
-                          }}
-                        >
+                        <div style={{
+                          border: "1px solid var(--color-border)",
+                          borderRadius: "var(--radius-lg)",
+                          background: "var(--color-bg-elevated)",
+                          padding: "var(--spacing-4)",
+                        }}>
                           <p style={{ margin: "0 0 var(--spacing-2)", fontWeight: 600, fontSize: "var(--font-size-base)" }}>
                             제출 결과
                           </p>
                           <p style={{ margin: "0 0 var(--spacing-1)", fontSize: "var(--font-size-sm)", fontFamily: "var(--font-family-mono)", color: "var(--color-text-secondary)" }}>
                             CI: {submitResult.consistency_index.toFixed(4)}
                           </p>
-                          <p
-                            style={{
-                              margin: 0,
-                              fontSize: "var(--font-size-sm)",
-                              fontFamily: "var(--font-family-mono)",
-                              fontWeight: 700,
-                              color: submitResult.consistency_ratio > crThreshold
-                                ? "var(--color-error)"
-                                : "var(--color-success)",
-                            }}
-                          >
+                          <p style={{
+                            margin: 0,
+                            fontSize: "var(--font-size-sm)",
+                            fontFamily: "var(--font-family-mono)",
+                            fontWeight: 700,
+                            color: submitResult.consistency_ratio > crThreshold ? "var(--color-error)" : "var(--color-success)",
+                          }}>
                             CR({crThresholdLabel}): {submitResult.consistency_ratio.toFixed(4)}
                             {submitResult.consistency_ratio > crThreshold ? " — 기준 초과" : " — 기준 통과"}
                           </p>
@@ -752,19 +663,14 @@ const ParticipantPage = () => {
                 </div>
               ) : comparables.length > 0 ? (
                 <div key="complete" className="survey-complete-enter" style={{ textAlign: "center", padding: "var(--spacing-12) var(--spacing-8)" }}>
-                  <FiCheckCircle
-                    size={48}
-                    style={{ color: "var(--color-success)", marginBottom: "var(--spacing-4)" }}
-                  />
-                  <p
-                    style={{
-                      fontFamily: "var(--font-display)",
-                      fontSize: "var(--font-size-xl)",
-                      fontWeight: 700,
-                      color: "var(--color-text-primary)",
-                      marginBottom: "var(--spacing-2)",
-                    }}
-                  >
+                  <FiCheckCircle size={48} style={{ color: "var(--color-success)", marginBottom: "var(--spacing-4)" }} />
+                  <p style={{
+                    fontFamily: "var(--font-display)",
+                    fontSize: "var(--font-size-xl)",
+                    fontWeight: 700,
+                    color: "var(--color-text-primary)",
+                    marginBottom: "var(--spacing-2)",
+                  }}>
                     모든 설문이 완료되었습니다
                   </p>
                   <p style={{ color: "var(--color-text-secondary)", fontSize: "var(--font-size-base)" }}>

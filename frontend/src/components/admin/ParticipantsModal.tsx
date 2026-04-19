@@ -152,7 +152,7 @@ const ParticipantsModal: React.FC<ParticipantsModalProps> = ({
                           variant="caption"
                           component="span"
                           color="text.secondary"
-                          sx={{ mr: 0.5 }}
+                          sx={{ mr: 0.5, fontFamily: "var(--font-family)" }}
                         >
                           참석자 ID:
                         </Typography>
@@ -160,7 +160,7 @@ const ParticipantsModal: React.FC<ParticipantsModalProps> = ({
                           variant="body2"
                           component="span"
                           sx={{
-                            fontFamily: "monospace",
+                            fontFamily: "var(--font-family-mono)",
                             fontWeight: 500,
                             fontSize: "0.875rem",
                             bgcolor: "action.hover",
