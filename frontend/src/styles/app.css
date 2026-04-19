@@ -273,7 +273,7 @@ body {
 
 .cr-status-value {
   font-weight: 700;
-  font-size: 1.6rem;
+  font-size: var(--font-size-2xl);
   font-family: var(--font-family-mono);
   color: var(--color-text-muted);
   line-height: 1;

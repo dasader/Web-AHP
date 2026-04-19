@@ -588,7 +588,7 @@ const ParticipantPage = () => {
                     <div className="cr-status-left">
                       <div
                         style={{
-                          fontSize: "var(--font-size-sm)",
+                          fontSize: "var(--font-size-xs)",
                           fontWeight: 600,
                           color: "var(--color-text-secondary)",
                           marginBottom: "var(--spacing-1)",
@@ -725,7 +725,7 @@ const ParticipantPage = () => {
                             padding: "var(--spacing-4)",
                           }}
                         >
-                          <p style={{ margin: "0 0 var(--spacing-2)", fontWeight: 600, fontSize: "var(--font-size-sm)" }}>
+                          <p style={{ margin: "0 0 var(--spacing-2)", fontWeight: 600, fontSize: "var(--font-size-base)" }}>
                             제출 결과
                           </p>
                           <p style={{ margin: "0 0 var(--spacing-1)", fontSize: "var(--font-size-sm)", fontFamily: "var(--font-family-mono)", color: "var(--color-text-secondary)" }}>
